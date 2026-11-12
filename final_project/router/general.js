@@ -26,7 +26,6 @@ public_users.get('/isbn/:isbn',function (req, res) {
 public_users.get('/author/:author',function (req, res) {
     const author = req.params.author;
     // Find the item in the cart that matches the given author
-    //const itemToFind = books.find(item => item.author === author);
     const itemToFind = Object.entries(books).find(item => item[1].author === author)
     if (itemToFind) {
         res.send(JSON.stringify(itemToFind[1],null,4)); // If the item is found, send it on response
@@ -35,14 +34,19 @@ public_users.get('/author/:author',function (req, res) {
 
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    const title = req.params.title;
+    // Find the item in the cart that matches the given author
+    const itemToFind = Object.entries(books).find(item => item[1].title === title)
+    if (itemToFind) {
+        res.send(JSON.stringify(itemToFind[1],null,4)); // If the item is found, send it on response
+    }
 });
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    const isbn = req.params.isbn;
+    // Find the item in the cart that matches the given ISBN
+    res.send(JSON.stringify(books[isbn].reviews,null,4));
 });
 
 module.exports.general = public_users;
