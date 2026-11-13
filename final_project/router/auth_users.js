@@ -46,10 +46,10 @@ regd_users.post("/register", (req, res) => {
         // Check if the user does not already exist
         if (!doesExist(username)) {
             // Add the new user to the users array
-            users.push({"username": username, "password": password});
-            return res.status(200).json({message: "User successfully registered. Now you can login"});
+            users.push({ "username": username, "password": password });
+            return res.status(200).json({ message: "User successfully registered. Now you can login" });
         } else {
-            return res.status(404).json({message: "User already exists!"});
+            return res.status(404).json({ message: "User already exists!" });
         }
     }
 });
@@ -69,7 +69,7 @@ regd_users.post("/login", (req, res) => {
         // Generate JWT access token
         let accessToken = jwt.sign({
             data: password
-        }, 'access', { expiresIn: 60 * 60 });
+        }, 'access', { expiresIn: 60 * 60 * 60 });
 
         // Store access token and username in session
         req.session.authorization = {
@@ -83,8 +83,45 @@ regd_users.post("/login", (req, res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-    //Write your code here
-    return res.status(300).json({ message: "Yet to be implemented" });
+    // Extract email parameter from request URL
+    const isbn = req.params.isbn;
+    const username = req.body.username;
+
+    const book = books[isbn];
+
+    if (book) // Check if book exists
+    {
+        let review = book.reviews[username];  // Retrieve friend object associated with email
+        let reviewTU = req.body.review;
+
+        // Update review if provided in request body
+        if (reviewTU) {
+            review = reviewTU;
+        }
+
+        book.reviews[username] = review;  // Update review details in 'books.reviews' object
+        res.send(`Book review with the username ${username} updated.`);
+
+    } else {
+        // Respond if book with specified isbn is not found
+        return res.send("Unable to find book!");
+    }
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    // Extract isbn parameter from request URL
+    const isbn = req.params.isbn;
+    const username = req.body.username;
+
+    const book = books[isbn];
+
+    if (book) {
+        // Delete review from 'reviews' object based on provided isbn
+        delete book.reviews[username];
+    }
+
+    // Send response confirming deletion of review
+    res.send(`Review for username ${username} deleted.`);
 });
 
 module.exports.authenticated = regd_users;
