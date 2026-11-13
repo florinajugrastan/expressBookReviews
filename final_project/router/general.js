@@ -1,15 +1,8 @@
 const express = require('express');
-//const axios = require('axios');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
-
-let Books_list = new Promise((resolve, reject) => {
-  setTimeout(() => {
-    resolve(books);
-  }, 6000);
-});
 
 // Check if a user with the given username already exists
 const doesExist = (username) => {
@@ -25,7 +18,7 @@ const doesExist = (username) => {
     }
 }
 
-public_users.post("/register", (req,res) => {
+public_users.post("/register", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
@@ -42,43 +35,67 @@ public_users.post("/register", (req,res) => {
     }
 });
 
+let getBooks = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve(books);
+    }, 3000);
+});
+
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  res.send(JSON.stringify(books,null,4));
+public_users.get('/', async function (req, res) {
+    try {
+        getBooks.then((bookList) => {
+            res.send(JSON.stringify(bookList, null, 4));
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Eroare la obținerea listei de cărți" });
+    }
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-    const isbn = req.params.isbn;
-    // Find the item in the cart that matches the given ISBN
-    res.send(JSON.stringify(books[isbn],null,4));
- });
-  
+public_users.get('/isbn/:isbn', function (req, res) {
+    try {
+        getBooks.then((bookList) => {
+            const isbn = req.params.isbn;
+            // Find the item in the cart that matches the given ISBN
+            res.send(JSON.stringify(books[isbn], null, 4));
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Eroare la obținerea listei de cărți" });
+    }
+});
+
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-    const author = req.params.author;
-    // Find the item in the cart that matches the given author
-    const itemToFind = Object.entries(books).find(item => item[1].author === author)
-    if (itemToFind) {
-        res.send(JSON.stringify(itemToFind[1],null,4)); // If the item is found, send it on response
+public_users.get('/author/:author', function (req, res) {
+    try {
+        getBooks.then((bookList) => {
+            const author = req.params.author;
+            // Find the item in the cart that matches the given author
+            const itemToFind = Object.entries(books).find(item => item[1].author === author)
+            if (itemToFind) {
+                res.send(JSON.stringify(itemToFind[1], null, 4)); // If the item is found, send it on response
+            }
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Eroare la obținerea listei de cărți" });
     }
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
+public_users.get('/title/:title', function (req, res) {
     const title = req.params.title;
     // Find the item in the cart that matches the given author
     const itemToFind = Object.entries(books).find(item => item[1].title === title)
     if (itemToFind) {
-        res.send(JSON.stringify(itemToFind[1],null,4)); // If the item is found, send it on response
+        res.send(JSON.stringify(itemToFind[1], null, 4)); // If the item is found, send it on response
     }
 });
 
 //  Get book review
-public_users.get('/review/:isbn',function (req, res) {
+public_users.get('/review/:isbn', function (req, res) {
     const isbn = req.params.isbn;
     // Find the item in the cart that matches the given ISBN
-    res.send(JSON.stringify(books[isbn].reviews,null,4));
+    res.send(JSON.stringify(books[isbn].reviews, null, 4));
 });
 
 module.exports.general = public_users;
